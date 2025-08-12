@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QR Mania - Scan QR Code</title>
+<!-- html5-qrcode CDN -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0; background: #fff; font-family: Arial, sans-serif; color: #004aad;
+  }
+
+  /* Top bar */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    background: #004aad;
+    color: white;
+    height: 50px;
+    padding: 0 10px;
+  }
+  .top-bar button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 12px;
+  }
+  .top-bar .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+  }
+  .top-bar .logo img {
+    height: 30px;
+    width: auto;
+  }
+  .top-bar .title {
+    font-weight: bold;
+    font-size: 20px;
+    user-select: none;
+  }
+
+  /* Main content */
+  #reader {
+    width: 100%;
+    max-width: 480px;
+    margin: 20px auto 10px;
+    border: 2px solid #004aad;
+    border-radius: 8px;
+    aspect-ratio: 4 / 3;
+    background: black;
+  }
+
+  /* Scanned text box container */
+  .text-container {
+    max-width: 480px;
+    margin: 0 auto 30px;
+    position: relative;
+  }
+
+  /* Scanned text area */
+  #scanned-text {
+    width: 100%;
+    min-height: 60px;
+    border: 2px solid #004aad;
+    border-radius: 6px;
+    padding: 12px 48px 12px 12px;
+    font-size: 16px;
+    color: #004aad;
+    user-select: text;
+    background: #f0f6ff;
+    word-wrap: break-word;
+  }
+
+  /* Copy button */
+  .copy-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #004aad;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* Placeholder styling for no QR scanned yet */
+  #scanned-text:empty::before {
+    content: "No QR code scanned yet";
+    color: #004aad99;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 500px) {
+    #reader, .text-container {
+      max-width: 100vw;
+      margin: 10px 0;
+      border-width: 1.5px;
+    }
+    .top-bar {
+      height: 45px;
+      font-size: 16px;
+    }
+    .top-bar .title {
+      font-size: 18px;
+    }
+    .copy-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <button id="btn-home" title="Home">&larr;</button>
+  <div class="logo">
+    <img src="qrm.png" alt="QR Mania Logo" />
+    <div class="title">Scan QR Code</div>
+  </div>
+</div>
+
+<!-- QR Code Reader -->
+<div id="reader"></div>
+
+<!-- Scanned text display with copy -->
+<div class="text-container">
+  <div id="scanned-text" contenteditable="false" aria-label="Scanned QR code content"></div>
+  <button class="copy-btn" id="copy-btn" title="Copy scanned text">Copy</button>
+</div>
+
+<script>
+  // Back to home page button
+  document.getElementById('btn-home').onclick = () => {
+    window.location.href = 'index.html'; // change as per your homepage filename
+  };
+
+  const scannedTextDiv = document.getElementById('scanned-text');
+  const copyBtn = document.getElementById('copy-btn');
+
+  copyBtn.onclick = () => {
+    const text = scannedTextDiv.textContent.trim();
+    if (text.length === 0) {
+      alert('No text to copy');
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    }, () => {
+      alert('Failed to copy');
+    });
+  };
+
+  // Initialize QR code scanner
+  function onScanSuccess(decodedText, decodedResult) {
+    // Handle the scanned code as you like
+    scannedTextDiv.textContent = decodedText;
+    // You can stop scanning after first successful scan, uncomment below:
+    // html5QrcodeScanner.clear();
+  }
+
+  function onScanFailure(error) {
+    // handle scan failure, usually better to ignore and keep scanning
+    // console.warn(`Code scan error = ${error}`);
+  }
+
+  let html5QrcodeScanner;
+
+  function startScanner() {
+    const config = { fps: 10, qrbox: 250 };
+
+    html5QrcodeScanner = new Html5Qrcode("reader");
+
+    html5QrcodeScanner.start(
+      { facingMode: "environment" }, // Rear camera
+      config,
+      onScanSuccess,
+      onScanFailure
+    ).catch(err => {
+      alert("Camera start error: " + err);
+    });
+  }
+
+  // Start camera scanning once page loads
+  window.onload = () => {
+    startScanner();
+  };
+</script>
+
+</body>
+</html>
